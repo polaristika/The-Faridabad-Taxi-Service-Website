@@ -30,8 +30,8 @@ const Gallery: React.FC<GalleryProps> = ({ config }) => {
                 alt={`Vehicle ${index + 1}`} 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
-                <p className="text-white font-bold">Premium Taxi {index + 1}</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                {/* Labels removed as requested */}
               </div>
             </div>
           ))}
