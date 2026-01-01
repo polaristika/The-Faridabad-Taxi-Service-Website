@@ -53,22 +53,53 @@ const INITIAL_CONFIG: SiteConfig = {
 };
 
 const App: React.FC = () => {
-  const [config, setConfig] = useState<SiteConfig>(() => {
-    const saved = localStorage.getItem('taxi_config');
-    const parsed = saved ? JSON.parse(saved) : INITIAL_CONFIG;
-    return { ...INITIAL_CONFIG, ...parsed };
-  });
-
+  const [config, setConfig] = useState<SiteConfig>(INITIAL_CONFIG);
+  const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     return localStorage.getItem('admin_session') === 'true';
   });
 
+  // Fetch Cloud Config on Load
   useEffect(() => {
-    localStorage.setItem('taxi_config', JSON.stringify(config));
-  }, [config]);
+    const fetchCloudConfig = async () => {
+      const saved = localStorage.getItem('taxi_config');
+      const cloudSettings = localStorage.getItem('cloud_settings');
+      
+      // 1. Start with initial
+      let currentConfig = { ...INITIAL_CONFIG };
+
+      // 2. Overlay LocalStorage if it exists
+      if (saved) {
+        currentConfig = { ...currentConfig, ...JSON.parse(saved) };
+      }
+
+      // 3. Try to sync from Cloud (Supabase) if configured
+      if (cloudSettings) {
+        const { url, key } = JSON.parse(cloudSettings);
+        try {
+          const res = await fetch(`${url}/rest/v1/site_config?select=data&id=eq.1`, {
+            headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
+          });
+          const data = await res.json();
+          if (data && data[0]) {
+            currentConfig = { ...currentConfig, ...data[0].data };
+            localStorage.setItem('taxi_config', JSON.stringify(currentConfig));
+          }
+        } catch (e) {
+          console.error("Cloud sync failed, using local fallback", e);
+        }
+      }
+
+      setConfig(currentConfig);
+      setIsLoading(false);
+    };
+
+    fetchCloudConfig();
+  }, []);
 
   const handleUpdateConfig = (newConfig: SiteConfig) => {
     setConfig(newConfig);
+    localStorage.setItem('taxi_config', JSON.stringify(newConfig));
   };
 
   const handleLogin = (status: boolean) => {
@@ -76,6 +107,17 @@ const App: React.FC = () => {
     if (status) localStorage.setItem('admin_session', 'true');
     else localStorage.removeItem('admin_session');
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Loading Your Ride...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <HashRouter>
