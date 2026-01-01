@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -8,6 +7,14 @@ import Gallery from './pages/Gallery';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import { SiteConfig } from './types';
+
+// ==========================================
+// 1. PASTE YOUR SUPABASE KEYS HERE
+// ==========================================
+const CLOUD_CONFIG = {
+  url: "https://jcaieopwycitxqcmiamm.supabase.co",
+  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjYWllb3B3eWNpdHhxY21pYW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODIxMzcsImV4cCI6MjA4Mjg1ODEzN30.H7lOV9_GIAXN4Wpei9tim0ER09VEzP7rG-bhYIbSm8E"
+};
 
 const INITIAL_CONFIG: SiteConfig = {
   hero: {
@@ -59,23 +66,24 @@ const App: React.FC = () => {
     return localStorage.getItem('admin_session') === 'true';
   });
 
-  // Fetch Cloud Config on Load
   useEffect(() => {
     const fetchCloudConfig = async () => {
       const saved = localStorage.getItem('taxi_config');
-      const cloudSettings = localStorage.getItem('cloud_settings');
+      const localCloudSettings = localStorage.getItem('cloud_settings');
       
-      // 1. Start with initial
       let currentConfig = { ...INITIAL_CONFIG };
 
-      // 2. Overlay LocalStorage if it exists
+      // 1. Load from localStorage first (for speed)
       if (saved) {
         currentConfig = { ...currentConfig, ...JSON.parse(saved) };
       }
 
-      // 3. Try to sync from Cloud (Supabase) if configured
-      if (cloudSettings) {
-        const { url, key } = JSON.parse(cloudSettings);
+      // 2. Decide which keys to use (hardcoded CLOUD_CONFIG is preferred for cross-device)
+      const url = CLOUD_CONFIG.url || (localCloudSettings ? JSON.parse(localCloudSettings).url : null);
+      const key = CLOUD_CONFIG.key || (localCloudSettings ? JSON.parse(localCloudSettings).key : null);
+
+      // 3. Sync from Supabase
+      if (url && key) {
         try {
           const res = await fetch(`${url}/rest/v1/site_config?select=data&id=eq.1`, {
             headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
@@ -113,7 +121,7 @@ const App: React.FC = () => {
       <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Loading Your Ride...</p>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Checking for updates...</p>
         </div>
       </div>
     );
