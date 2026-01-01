@@ -7,24 +7,18 @@ interface AdminProps {
   onLogout: () => void;
 }
 
-// Hardcoded keys to match App.tsx for seamless syncing
-const CLOUD_CONFIG = {
-  url: "https://jcaieopwycitxqcmiamm.supabase.co",
-  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjYWllb3B3eWNpdHhxY21pYW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODIxMzcsImV4cCI6MjA4Mjg1ODEzN30.H7lOV9_GIAXN4Wpei9tim0ER09VEzP7rG-bhYIbSm8E"
-};
-
 const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
-  const [activeTab, setActiveTab] = useState<'hero' | 'stats' | 'general' | 'vehicles' | 'gallery' | 'reviews' | 'faqs'>('hero');
+  const [activeTab, setActiveTab] = useState<'hero' | 'stats' | 'general' | 'vehicles' | 'gallery' | 'reviews' | 'faqs' | 'sync'>('hero');
   const [localConfig, setLocalConfig] = useState<SiteConfig>(config);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync local state if config prop updates
-  useEffect(() => {
-    setLocalConfig(config);
-  }, [config]);
+  const [cloudSettings, setCloudSettings] = useState(() => {
+    const saved = localStorage.getItem('cloud_settings');
+    return saved ? JSON.parse(saved) : { url: '', key: '' };
+  });
 
   const handleSaveDraft = () => {
     onUpdate(localConfig);
@@ -33,13 +27,19 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
   };
 
   const handlePublish = async () => {
+    if (!cloudSettings.url || !cloudSettings.key) {
+      alert("Please go to 'Cloud Setup' tab and enter your Supabase URL and Key first.");
+      setActiveTab('sync');
+      return;
+    }
+
     setIsPublishing(true);
     try {
-      const res = await fetch(`${CLOUD_CONFIG.url}/rest/v1/site_config?id=eq.1`, {
+      const res = await fetch(`${cloudSettings.url}/rest/v1/site_config?id=eq.1`, {
         method: 'PATCH',
         headers: {
-          'apikey': CLOUD_CONFIG.key,
-          'Authorization': `Bearer ${CLOUD_CONFIG.key}`,
+          'apikey': cloudSettings.key,
+          'Authorization': `Bearer ${cloudSettings.key}`,
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal'
         },
@@ -53,7 +53,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
         throw new Error('Cloud update failed');
       }
     } catch (err) {
-      alert('Cloud Sync Error. Please check your internet connection.');
+      alert('Cloud Sync Error. Check your URL/Key in Cloud Setup.');
     } finally {
       setIsPublishing(false);
       setTimeout(() => setSaveStatus(null), 5000);
@@ -74,7 +74,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
     });
 
     Promise.all(promises).then(results => {
-      setLocalConfig(prev => ({ ...prev, gallery: [...(prev.gallery || []), ...results] }));
+      setLocalConfig(prev => ({ ...prev, gallery: [...prev.gallery, ...results] }));
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     });
@@ -105,7 +105,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
           
           <div className="flex gap-6 overflow-x-auto no-scrollbar border-t border-slate-50">
-            {(['hero', 'stats', 'general', 'vehicles', 'gallery', 'reviews', 'faqs'] as const).map(tab => (
+            {(['hero', 'stats', 'general', 'vehicles', 'gallery', 'reviews', 'faqs', 'sync'] as const).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -113,7 +113,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
                   activeTab === tab ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
               >
-                {tab}
+                {tab === 'sync' ? '⚙️ Cloud Setup' : tab}
               </button>
             ))}
           </div>
@@ -127,7 +127,46 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
         )}
 
-        {/* Hero Tab */}
+        {activeTab === 'sync' && (
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-8">
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 mb-2">Connect to Cloud</h2>
+              <p className="text-slate-500 text-sm">Enter the codes from your Supabase project once. After this, clicking "Update Website" will change the site for all your customers instantly.</p>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Supabase URL</label>
+                <input 
+                  className={inputClass}
+                  placeholder="https://xyz.supabase.co"
+                  value={cloudSettings.url}
+                  onChange={e => setCloudSettings({...cloudSettings, url: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Supabase API Key (Anon)</label>
+                <input 
+                  type="password"
+                  className={inputClass}
+                  placeholder="Paste long key here..."
+                  value={cloudSettings.key}
+                  onChange={e => setCloudSettings({...cloudSettings, key: e.target.value})}
+                />
+              </div>
+              <button 
+                onClick={() => {
+                  localStorage.setItem('cloud_settings', JSON.stringify(cloudSettings));
+                  setSaveStatus('Cloud keys saved!');
+                }}
+                className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all"
+              >
+                Save Connection Keys
+              </button>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'hero' && (
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
             <h2 className="text-xl font-black text-slate-900">Front Page Text</h2>
@@ -160,10 +199,9 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
         )}
 
-        {/* Stats Tab */}
         {activeTab === 'stats' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(localConfig.stats || []).map(stat => (
+            {localConfig.stats.map(stat => (
               <div key={stat.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase">Value (e.g., 5000+)</label>
@@ -193,7 +231,6 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
         )}
 
-        {/* General Tab */}
         {activeTab === 'general' && (
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
             <h2 className="text-xl font-black text-slate-900">Contact & Areas</h2>
@@ -201,7 +238,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
               <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Primary Phone</label>
               <input 
                 className={inputClass}
-                value={localConfig.phones[0] || ''}
+                value={localConfig.phones[0]}
                 onChange={e => setLocalConfig({...localConfig, phones: [e.target.value, ...localConfig.phones.slice(1)]})}
               />
             </div>
@@ -209,7 +246,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
               <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Primary Email</label>
               <input 
                 className={inputClass}
-                value={localConfig.emails[0] || ''}
+                value={localConfig.emails[0]}
                 onChange={e => setLocalConfig({...localConfig, emails: [e.target.value, ...localConfig.emails.slice(1)]})}
               />
             </div>
@@ -226,7 +263,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
               <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Service Areas (Comma Separated)</label>
               <input 
                 className={inputClass}
-                value={(localConfig.serviceAreas || []).join(', ')}
+                value={localConfig.serviceAreas.join(', ')}
                 onChange={e => setLocalConfig({...localConfig, serviceAreas: e.target.value.split(',').map(s => s.trim())})}
                 placeholder="Sector 1, Sector 2, Ballabgarh..."
               />
@@ -235,11 +272,10 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
         )}
 
-        {/* Vehicles Tab */}
         {activeTab === 'vehicles' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(localConfig.vehicles || []).map(v => (
+              {localConfig.vehicles.map(v => (
                 <div key={v.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
                   <h4 className="font-bold mb-4">{v.name} Price Settings</h4>
                   <div className="space-y-4">
@@ -268,11 +304,9 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
                 </div>
               ))}
             </div>
-            <button onClick={handleSaveDraft} className="w-full py-4 bg-blue-100 text-blue-600 rounded-xl font-bold hover:bg-blue-200 transition-colors">Save Local Draft</button>
           </div>
         )}
 
-        {/* Gallery Tab */}
         {activeTab === 'gallery' && (
           <div className="bg-white p-8 rounded-3xl border border-slate-200 space-y-8">
             <div className="flex flex-col items-center justify-center p-12 border-4 border-dashed border-slate-100 rounded-3xl bg-slate-50/50 group hover:border-blue-400 transition-all relative">
@@ -284,7 +318,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {(localConfig.gallery || []).map((item, i) => (
+              {localConfig.gallery.map((item, i) => (
                 <div key={i} className="relative aspect-square rounded-2xl overflow-hidden group border-2 border-slate-100">
                   <img src={item} className="w-full h-full object-cover" />
                   <button 
@@ -296,14 +330,12 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
                 </div>
               ))}
             </div>
-            <button onClick={handleSaveDraft} className="w-full py-4 bg-blue-100 text-blue-600 rounded-xl font-bold hover:bg-blue-200 transition-colors">Save Local Draft</button>
           </div>
         )}
 
-        {/* Reviews Tab */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
-            {(localConfig.reviews || []).map(r => (
+            {localConfig.reviews.map(r => (
               <div key={r.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <input className={inputClass} value={r.name} onChange={e => {
                   setLocalConfig({...localConfig, reviews: localConfig.reviews.map(rev => rev.id === r.id ? {...rev, name: e.target.value} : rev)})
@@ -314,15 +346,13 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
                 <button onClick={() => setLocalConfig({...localConfig, reviews: localConfig.reviews.filter(rev => rev.id !== r.id)})} className="text-red-500 text-xs font-bold uppercase tracking-widest">Delete Review</button>
               </div>
             ))}
-            <button onClick={() => setLocalConfig({...localConfig, reviews: [...(localConfig.reviews || []), {id: Date.now().toString(), name: 'New Client', comment: 'Great service!', rating: 5, date: '2024-01-01'}]})} className="w-full py-4 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 font-bold hover:text-blue-500 hover:border-blue-500 transition-all">+ Add Review</button>
-            <button onClick={handleSaveDraft} className="w-full py-4 bg-blue-100 text-blue-600 rounded-xl font-bold hover:bg-blue-200 transition-colors">Save Local Draft</button>
+            <button onClick={() => setLocalConfig({...localConfig, reviews: [...localConfig.reviews, {id: Date.now().toString(), name: 'New Client', comment: 'Great service!', rating: 5, date: '2024-01-01'}]})} className="w-full py-4 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 font-bold hover:text-blue-500 hover:border-blue-500 transition-all">+ Add Review</button>
           </div>
         )}
 
-        {/* FAQs Tab */}
         {activeTab === 'faqs' && (
           <div className="space-y-6">
-            {(localConfig.faqs || []).map(f => (
+            {localConfig.faqs.map(f => (
               <div key={f.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase">Question</label>
@@ -339,8 +369,21 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
                 <button onClick={() => setLocalConfig({...localConfig, faqs: localConfig.faqs.filter(faq => faq.id !== f.id)})} className="text-red-500 text-xs font-bold uppercase tracking-widest">Delete FAQ</button>
               </div>
             ))}
-            <button onClick={() => setLocalConfig({...localConfig, faqs: [...(localConfig.faqs || []), {id: Date.now().toString(), question: 'New Question?', answer: 'Your answer here.'}]})} className="w-full py-4 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 font-bold hover:text-blue-500 hover:border-blue-500 transition-all">+ Add FAQ</button>
+            <button onClick={() => setLocalConfig({...localConfig, faqs: [...localConfig.faqs, {id: Date.now().toString(), question: 'New Question?', answer: 'Your answer here.'}]})} className="w-full py-4 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 font-bold hover:text-blue-500 hover:border-blue-500 transition-all">+ Add FAQ</button>
             <button onClick={handleSaveDraft} className="w-full py-4 bg-blue-100 text-blue-600 rounded-xl font-bold hover:bg-blue-200 transition-colors">Save Local Draft</button>
+          </div>
+        )}
+
+        {/* Sync/Update Reminder */}
+        {activeTab !== 'sync' && (
+          <div className="mt-12 bg-slate-900 text-white p-8 rounded-3xl shadow-xl">
+            <h3 className="text-lg font-black mb-2 flex items-center gap-2">
+              <i className="fas fa-check-double text-green-400"></i> Done with changes?
+            </h3>
+            <p className="text-slate-400 text-sm mb-6">Always click "Update Website" at the top to make your changes visible to the public.</p>
+            <button onClick={handlePublish} className="w-full py-4 bg-green-600 rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg shadow-green-900/20">
+              Apply to Live Website Now
+            </button>
           </div>
         )}
       </div>
