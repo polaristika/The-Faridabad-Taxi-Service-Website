@@ -7,7 +7,6 @@ interface AdminProps {
   onLogout: () => void;
 }
 
-// Hardcoded keys for seamless syncing without setup
 const CLOUD_CONFIG = {
   url: "https://jcaieopwycitxqcmiamm.supabase.co",
   key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjYWllb3B3eWNpdHhxY21pYW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODIxMzcsImV4cCI6MjA4Mjg1ODEzN30.H7lOV9_GIAXN4Wpei9tim0ER09VEzP7rG-bhYIbSm8E"
@@ -70,8 +69,8 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
         reader.readAsDataURL(file);
       });
     });
-    Promise.all(promises).then(results => {
-      setLocalConfig(prev => ({ ...prev, gallery: [...(prev.gallery || []), ...results] }));
+    Promise.all(promises).then((results: string[]) => {
+      setLocalConfig((prev: SiteConfig) => ({ ...prev, gallery: [...(prev.gallery || []), ...results] }));
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     });
@@ -101,7 +100,6 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
             </div>
           </div>
           
-          {/* Scrolling Tabs */}
           <div className="flex gap-4 overflow-x-auto no-scrollbar border-t border-slate-50">
             {(['hero', 'stats', 'general', 'vehicles', 'gallery', 'reviews', 'faqs'] as const).map(tab => (
               <button
@@ -125,7 +123,6 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
         )}
 
-        {/* Hero Section */}
         {activeTab === 'hero' && (
           <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-6">
             <h2 className="text-xl font-black text-slate-900">Front Page Text</h2>
@@ -158,12 +155,11 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
         )}
 
-        {/* Stats Section */}
         {activeTab === 'stats' && (
           <div className="space-y-6">
             <h2 className="text-xl font-black text-slate-900 mb-2">Key Stats</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(localConfig.stats || []).map(stat => (
+              {(localConfig.stats || []).map((stat: Stat) => (
                 <div key={stat.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                   <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase">Value</label>
@@ -171,7 +167,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
                       className={inputClass} 
                       value={stat.value} 
                       onChange={e => {
-                        const updated = localConfig.stats.map(s => s.id === stat.id ? {...s, value: e.target.value} : s);
+                        const updated = localConfig.stats.map((s: Stat) => s.id === stat.id ? {...s, value: e.target.value} : s);
                         setLocalConfig({...localConfig, stats: updated});
                       }} 
                     />
@@ -182,7 +178,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
                       className={inputClass} 
                       value={stat.label} 
                       onChange={e => {
-                        const updated = localConfig.stats.map(s => s.id === stat.id ? {...s, label: e.target.value} : s);
+                        const updated = localConfig.stats.map((s: Stat) => s.id === stat.id ? {...s, label: e.target.value} : s);
                         setLocalConfig({...localConfig, stats: updated});
                       }} 
                     />
@@ -194,7 +190,6 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
         )}
 
-        {/* General Info */}
         {activeTab === 'general' && (
           <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-6">
             <h2 className="text-xl font-black text-slate-900">Contact & Areas</h2>
@@ -220,32 +215,31 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
               <input 
                 className={inputClass}
                 value={(localConfig.serviceAreas || []).join(', ')}
-                onChange={e => setLocalConfig({...localConfig, serviceAreas: e.target.value.split(',').map(s => s.trim())})}
+                onChange={e => setLocalConfig({...localConfig, serviceAreas: e.target.value.split(',').map((s: string) => s.trim())})}
               />
             </div>
             <button onClick={handleSaveDraft} className="w-full py-4 bg-blue-100 text-blue-600 rounded-xl font-bold hover:bg-blue-200 transition-colors">Save Local Draft</button>
           </div>
         )}
 
-        {/* Vehicle Pricing */}
         {activeTab === 'vehicles' && (
           <div className="space-y-6">
             <h2 className="text-xl font-black text-slate-900">Vehicle Pricing</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(localConfig.vehicles || []).map(v => (
+              {(localConfig.vehicles || []).map((v: Vehicle) => (
                 <div key={v.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                   <h4 className="font-bold border-b border-slate-100 pb-2">{v.name}</h4>
                   <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase">Base Fare</label>
                     <input type="number" className={inputClass} value={v.base} onChange={e => {
-                      const updated = localConfig.vehicles.map(veh => veh.id === v.id ? {...veh, base: parseInt(e.target.value)} : veh);
+                      const updated = localConfig.vehicles.map((veh: Vehicle) => veh.id === v.id ? {...veh, base: parseInt(e.target.value)} : veh);
                       setLocalConfig({...localConfig, vehicles: updated});
                     }} />
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase">Per KM Rate</label>
                     <input type="number" className={inputClass} value={v.km} onChange={e => {
-                      const updated = localConfig.vehicles.map(veh => veh.id === v.id ? {...veh, km: parseInt(e.target.value)} : veh);
+                      const updated = localConfig.vehicles.map((veh: Vehicle) => veh.id === v.id ? {...veh, km: parseInt(e.target.value)} : veh);
                       setLocalConfig({...localConfig, vehicles: updated});
                     }} />
                   </div>
@@ -256,7 +250,6 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
         )}
 
-        {/* Gallery Tab */}
         {activeTab === 'gallery' && (
           <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 space-y-8">
             <h2 className="text-xl font-black text-slate-900">Gallery Management</h2>
@@ -269,11 +262,11 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {(localConfig.gallery || []).map((item, i) => (
+              {(localConfig.gallery || []).map((item: string, i: number) => (
                 <div key={i} className="relative aspect-square rounded-2xl overflow-hidden group border-2 border-slate-100">
                   <img src={item} className="w-full h-full object-cover" />
                   <button 
-                    onClick={() => setLocalConfig({...localConfig, gallery: localConfig.gallery.filter((_, idx) => idx !== i)})}
+                    onClick={() => setLocalConfig({...localConfig, gallery: localConfig.gallery.filter((_: string, idx: number) => idx !== i)})}
                     className="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
                   >
                     <i className="fas fa-trash text-xs"></i>
@@ -285,19 +278,18 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
         )}
 
-        {/* Reviews Tab */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             <h2 className="text-xl font-black text-slate-900">Client Reviews</h2>
-            {(localConfig.reviews || []).map(r => (
+            {(localConfig.reviews || []).map((r: Review) => (
               <div key={r.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <input className={inputClass} placeholder="Client Name" value={r.name} onChange={e => {
-                  setLocalConfig({...localConfig, reviews: localConfig.reviews.map(rev => rev.id === r.id ? {...rev, name: e.target.value} : rev)})
+                  setLocalConfig({...localConfig, reviews: localConfig.reviews.map((rev: Review) => rev.id === r.id ? {...rev, name: e.target.value} : rev)})
                 }} />
                 <textarea className={inputClass} rows={2} placeholder="Review text" value={r.comment} onChange={e => {
-                  setLocalConfig({...localConfig, reviews: localConfig.reviews.map(rev => rev.id === r.id ? {...rev, comment: e.target.value} : rev)})
+                  setLocalConfig({...localConfig, reviews: localConfig.reviews.map((rev: Review) => rev.id === r.id ? {...rev, comment: e.target.value} : rev)})
                 }} />
-                <button onClick={() => setLocalConfig({...localConfig, reviews: localConfig.reviews.filter(rev => rev.id !== r.id)})} className="text-red-500 text-xs font-bold uppercase">Remove Review</button>
+                <button onClick={() => setLocalConfig({...localConfig, reviews: localConfig.reviews.filter((rev: Review) => rev.id !== r.id)})} className="text-red-500 text-xs font-bold uppercase">Remove Review</button>
               </div>
             ))}
             <button onClick={() => setLocalConfig({...localConfig, reviews: [...(localConfig.reviews || []), {id: Date.now().toString(), name: 'New Client', comment: 'Excellent service!', rating: 5, date: new Date().toISOString().split('T')[0]}]})} className="w-full py-4 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 font-bold hover:text-blue-500 transition-all">+ Add New Review</button>
@@ -305,19 +297,18 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
           </div>
         )}
 
-        {/* FAQs Tab */}
         {activeTab === 'faqs' && (
           <div className="space-y-6">
             <h2 className="text-xl font-black text-slate-900">Frequently Asked Questions</h2>
-            {(localConfig.faqs || []).map(f => (
+            {(localConfig.faqs || []).map((f: FAQ) => (
               <div key={f.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <input className={inputClass} placeholder="Question" value={f.question} onChange={e => {
-                  setLocalConfig({...localConfig, faqs: localConfig.faqs.map(faq => faq.id === f.id ? {...faq, question: e.target.value} : faq)})
+                  setLocalConfig({...localConfig, faqs: localConfig.faqs.map((faq: FAQ) => faq.id === f.id ? {...faq, question: e.target.value} : faq)})
                 }} />
                 <textarea className={inputClass} rows={2} placeholder="Answer" value={f.answer} onChange={e => {
-                  setLocalConfig({...localConfig, faqs: localConfig.faqs.map(faq => faq.id === f.id ? {...faq, answer: e.target.value} : faq)})
+                  setLocalConfig({...localConfig, faqs: localConfig.faqs.map((faq: FAQ) => faq.id === f.id ? {...faq, answer: e.target.value} : faq)})
                 }} />
-                <button onClick={() => setLocalConfig({...localConfig, faqs: localConfig.faqs.filter(faq => faq.id !== f.id)})} className="text-red-500 text-xs font-bold uppercase">Remove FAQ</button>
+                <button onClick={() => setLocalConfig({...localConfig, faqs: localConfig.faqs.filter((faq: FAQ) => faq.id !== f.id)})} className="text-red-500 text-xs font-bold uppercase">Remove FAQ</button>
               </div>
             ))}
             <button onClick={() => setLocalConfig({...localConfig, faqs: [...(localConfig.faqs || []), {id: Date.now().toString(), question: 'New Question?', answer: 'Answer here.'}]})} className="w-full py-4 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 font-bold hover:text-blue-500 transition-all">+ Add New FAQ</button>
