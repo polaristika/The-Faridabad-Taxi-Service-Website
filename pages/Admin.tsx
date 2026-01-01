@@ -87,29 +87,29 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
       {/* Admin Nav */}
       <div className="bg-white border-b border-slate-200 sticky top-16 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row justify-between items-center py-4 sm:h-20 gap-4">
+            <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
               <i className="fas fa-magic text-blue-600"></i> Website Manager
             </h1>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
               <button 
                 onClick={handlePublish}
                 disabled={isPublishing}
-                className="bg-green-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-green-100 hover:bg-green-700 transition-all flex items-center gap-2 disabled:opacity-50"
+                className="flex-1 sm:flex-none bg-green-600 text-white px-4 sm:px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-green-100 hover:bg-green-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 text-xs sm:text-sm"
               >
                 <i className={`fas ${isPublishing ? 'fa-spinner fa-spin' : 'fa-globe-americas'}`}></i>
                 {isPublishing ? 'Updating...' : 'Update Website'}
               </button>
-              <button onClick={onLogout} className="text-slate-400 hover:text-red-500 font-bold px-4 py-2 transition-colors">Logout</button>
+              <button onClick={onLogout} className="text-slate-400 hover:text-red-500 font-bold px-3 sm:px-4 py-2 transition-colors text-xs sm:text-sm">Logout</button>
             </div>
           </div>
           
-          <div className="flex gap-6 overflow-x-auto no-scrollbar border-t border-slate-50">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar border-t border-slate-50">
             {(['hero', 'stats', 'general', 'vehicles', 'gallery', 'reviews', 'faqs'] as const).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`py-4 px-2 border-b-4 font-bold text-xs transition-all whitespace-nowrap uppercase tracking-widest ${
+                className={`py-3 sm:py-4 px-1 sm:px-2 border-b-4 font-bold text-[10px] sm:text-xs transition-all whitespace-nowrap uppercase tracking-widest ${
                   activeTab === tab ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
               >
@@ -120,16 +120,16 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 sm:mt-12">
         {saveStatus && (
-          <div className="bg-blue-600 text-white px-6 py-4 rounded-2xl mb-8 font-bold flex items-center gap-3 animate-bounce shadow-xl">
+          <div className="bg-blue-600 text-white px-6 py-4 rounded-2xl mb-8 font-bold flex items-center gap-3 animate-bounce shadow-xl text-sm sm:text-base">
             <i className="fas fa-check-circle"></i> {saveStatus}
           </div>
         )}
 
         {/* Hero Tab */}
         {activeTab === 'hero' && (
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
             <h2 className="text-xl font-black text-slate-900">Front Page Text</h2>
             <div>
               <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Big Title</label>
@@ -195,7 +195,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
 
         {/* General Tab */}
         {activeTab === 'general' && (
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
             <h2 className="text-xl font-black text-slate-900">Contact & Areas</h2>
             <div>
               <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Primary Phone</label>
@@ -274,13 +274,13 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
 
         {/* Gallery Tab */}
         {activeTab === 'gallery' && (
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 space-y-8">
-            <div className="flex flex-col items-center justify-center p-12 border-4 border-dashed border-slate-100 rounded-3xl bg-slate-50/50 group hover:border-blue-400 transition-all relative">
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 space-y-8">
+            <div className="flex flex-col items-center justify-center p-8 sm:p-12 border-4 border-dashed border-slate-100 rounded-3xl bg-slate-50/50 group hover:border-blue-400 transition-all relative">
               <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
               <div className="text-center">
                 <i className={`fas ${isUploading ? 'fa-spinner fa-spin' : 'fa-images'} text-3xl text-blue-600 mb-4`}></i>
-                <h3 className="font-bold">Add Fleet Photos</h3>
-                <p className="text-xs text-slate-400">Select photos from your phone/laptop gallery</p>
+                <h3 className="font-bold text-sm sm:text-base">Add Fleet Photos</h3>
+                <p className="text-[10px] sm:text-xs text-slate-400">Select photos from your phone/laptop gallery</p>
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

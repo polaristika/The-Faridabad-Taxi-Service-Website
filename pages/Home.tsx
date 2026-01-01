@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { SiteConfig, TripType, BookingDetails } from '../types';
 
@@ -38,6 +37,15 @@ Date: ${booking.date}
 Time: ${booking.time}
 Type: ${booking.tripType}`;
 
+    const waLink = `https://wa.me/${config.phones[0].replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    window.open(waLink, '_blank');
+  };
+
+  const handleWriteReview = () => {
+    const message = `*Customer Review for The Faridabad Taxi Service*
+Name: 
+Rating (1-5): 
+Your Feedback: `;
     const waLink = `https://wa.me/${config.phones[0].replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(waLink, '_blank');
   };
@@ -234,17 +242,24 @@ Type: ${booking.tripType}`;
             </div>
           ))}
         </div>
-        {config.reviews.length > 6 && (
-          <div className="text-center mt-12">
+        
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
+          {config.reviews.length > 6 && (
             <button 
               onClick={() => setShowAllReviews(!showAllReviews)}
-              className="px-8 py-3 bg-white border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all flex items-center gap-2 mx-auto"
+              className="px-8 py-3 bg-white border-2 border-slate-200 rounded-full font-bold text-slate-600 hover:border-blue-600 hover:text-blue-600 transition-all flex items-center gap-2"
             >
               {showAllReviews ? 'Minimize Reviews' : 'Show More Testimonials'}
               <i className={`fas fa-chevron-${showAllReviews ? 'up' : 'down'} text-xs`}></i>
             </button>
-          </div>
-        )}
+          )}
+          <button 
+            onClick={handleWriteReview}
+            className="px-8 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all flex items-center gap-2"
+          >
+            <i className="fas fa-edit"></i> Write a Review
+          </button>
+        </div>
       </section>
 
       {/* FAQ Section */}
