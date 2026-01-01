@@ -52,7 +52,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
         throw new Error('Cloud update failed');
       }
     } catch (err) {
-      alert('Sync Error. Please check your internet.');
+      alert('Sync Error. Please check your internet connection.');
     } finally {
       setIsPublishing(false);
       setTimeout(() => setSaveStatus(null), 5000);
