@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { SiteConfig } from '../types';
@@ -65,7 +64,12 @@ const Footer: React.FC<FooterProps> = ({ config }) => {
               </li>
               <li className="flex items-center gap-3">
                 <i className="fas fa-phone text-blue-500"></i>
-                <a href={`tel:${config.phones[0]}`} className="hover:text-blue-400">{config.phones[0]}</a>
+                <div className="flex flex-col gap-1">
+                  <a href={`tel:${config.phones[0]}`} className="hover:text-blue-400">{config.phones[0]}</a>
+                  {config.secondaryPhone && (
+                    <a href={`tel:${config.secondaryPhone}`} className="hover:text-blue-400">{config.secondaryPhone}</a>
+                  )}
+                </div>
               </li>
               <li className="flex items-center gap-3">
                 <i className="fas fa-envelope text-blue-500"></i>

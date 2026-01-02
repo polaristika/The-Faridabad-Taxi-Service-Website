@@ -8,9 +8,6 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import { SiteConfig } from './types';
 
-// ==========================================
-// 1. PASTE YOUR SUPABASE KEYS HERE
-// ==========================================
 const CLOUD_CONFIG = {
   url: "https://jcaieopwycitxqcmiamm.supabase.co",
   key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjYWllb3B3eWNpdHhxY21pYW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODIxMzcsImV4cCI6MjA4Mjg1ODEzN30.H7lOV9_GIAXN4Wpei9tim0ER09VEzP7rG-bhYIbSm8E"
@@ -29,6 +26,7 @@ const INITIAL_CONFIG: SiteConfig = {
     { id: '4', value: '15+', label: 'Active Fleet' }
   ],
   phones: ['+91 9999711219'],
+  secondaryPhone: '',
   emails: ['Rajnijeetunagar1986@gmail.com'],
   address: 'Near NIT, Faridabad, Haryana – 121001',
   vehicles: [
@@ -63,7 +61,8 @@ const App: React.FC = () => {
   const [config, setConfig] = useState<SiteConfig>(INITIAL_CONFIG);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    return localStorage.getItem('admin_session') === 'true';
+    // Use sessionStorage so session dies when tab is closed
+    return sessionStorage.getItem('admin_session') === 'true';
   });
 
   useEffect(() => {
@@ -73,16 +72,13 @@ const App: React.FC = () => {
       
       let currentConfig = { ...INITIAL_CONFIG };
 
-      // 1. Load from localStorage first (for speed)
       if (saved) {
         currentConfig = { ...currentConfig, ...JSON.parse(saved) };
       }
 
-      // 2. Decide which keys to use (hardcoded CLOUD_CONFIG is preferred for cross-device)
       const url = CLOUD_CONFIG.url || (localCloudSettings ? JSON.parse(localCloudSettings).url : null);
       const key = CLOUD_CONFIG.key || (localCloudSettings ? JSON.parse(localCloudSettings).key : null);
 
-      // 3. Sync from Supabase
       if (url && key) {
         try {
           const res = await fetch(`${url}/rest/v1/site_config?select=data&id=eq.1`, {
@@ -112,8 +108,8 @@ const App: React.FC = () => {
 
   const handleLogin = (status: boolean) => {
     setIsAdmin(status);
-    if (status) localStorage.setItem('admin_session', 'true');
-    else localStorage.removeItem('admin_session');
+    if (status) sessionStorage.setItem('admin_session', 'true');
+    else sessionStorage.removeItem('admin_session');
   };
 
   if (isLoading) {

@@ -20,6 +20,14 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // AUTO-LOCK FEATURE: Logout when leaving the admin page
+  useEffect(() => {
+    return () => {
+      // This runs when the Admin component is destroyed (user leaves page)
+      onLogout();
+    };
+  }, [onLogout]);
+
   useEffect(() => {
     setLocalConfig(config);
   }, [config]);
@@ -96,7 +104,7 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
                 <i className={`fas ${isPublishing ? 'fa-spinner fa-spin' : 'fa-globe-americas'}`}></i>
                 {isPublishing ? 'Updating...' : 'Update Website'}
               </button>
-              <button onClick={onLogout} className="text-slate-400 hover:text-red-500 font-bold px-4 py-2 transition-colors text-sm">Logout</button>
+              <button onClick={onLogout} className="text-slate-400 hover:text-red-500 font-bold px-4 py-2 transition-colors text-sm">Logout & Lock</button>
             </div>
           </div>
           
@@ -199,6 +207,15 @@ const Admin: React.FC<AdminProps> = ({ config, onUpdate, onLogout }) => {
                 className={inputClass}
                 value={localConfig.phones[0] || ''}
                 onChange={e => setLocalConfig({...localConfig, phones: [e.target.value, ...localConfig.phones.slice(1)]})}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Secondary Phone (Visible in Footer)</label>
+              <input 
+                className={inputClass}
+                placeholder="+91 88888 77777"
+                value={localConfig.secondaryPhone || ''}
+                onChange={e => setLocalConfig({...localConfig, secondaryPhone: e.target.value})}
               />
             </div>
             <div>

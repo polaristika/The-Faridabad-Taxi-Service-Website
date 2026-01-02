@@ -1,4 +1,3 @@
-
 export interface Vehicle {
   id: string;
   name: string;
@@ -44,6 +43,7 @@ export interface SiteConfig {
   };
   stats: Stat[];
   phones: string[];
+  secondaryPhone?: string;
   emails: string[];
   address: string;
   vehicles: Vehicle[];
