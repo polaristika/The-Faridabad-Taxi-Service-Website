@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SiteConfig } from '../types';
 
@@ -7,13 +7,24 @@ interface FooterProps {
 }
 
 const Footer: React.FC<FooterProps> = ({ config }) => {
+  const [logoError, setLogoError] = useState(false);
+
   return (
     <footer className="bg-slate-900 text-slate-400 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <i className="fas fa-taxi text-yellow-400 text-2xl"></i>
+              {!logoError ? (
+                <img 
+                  src="/logo.png" 
+                  alt="Logo" 
+                  className="h-12 w-auto brightness-0 invert" 
+                  onError={() => setLogoError(true)}
+                />
+              ) : (
+                <i className="fas fa-taxi text-yellow-400 text-2xl"></i>
+              )}
               <h3 className="text-white font-bold text-xl uppercase tracking-tighter">The Faridabad Taxi</h3>
             </div>
             <p className="text-sm leading-relaxed">
@@ -80,7 +91,7 @@ const Footer: React.FC<FooterProps> = ({ config }) => {
         </div>
         
         <div className="border-t border-slate-800 pt-8 text-center text-xs">
-          <p>© {new Date().getFullYear()} The Faridabad Taxi Service. All rights reserved. Designed for Excellence.</p>
+          <p>© {new Date().getFullYear()} The Faridabad Taxi Service. All rights reserved.</p>
         </div>
       </div>
     </footer>
