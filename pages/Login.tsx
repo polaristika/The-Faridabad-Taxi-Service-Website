@@ -16,10 +16,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Updated password as per user request
-    if (password === 'ADMIN123@') {
+    if (password === 'JeetuNagarFbd') {
       onLogin();
     } else {
-      setError('Invalid password. Hint: ADMIN123@');
+      setError('Invalid password');
     }
   };
 

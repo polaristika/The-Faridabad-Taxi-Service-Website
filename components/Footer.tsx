@@ -51,7 +51,6 @@ const Footer: React.FC<FooterProps> = ({ config }) => {
               <li><Link to="/" className="hover:text-blue-400 transition-colors">Home</Link></li>
               <li><Link to="/gallery" className="hover:text-blue-400 transition-colors">Gallery</Link></li>
               <li><a href="#pricing" className="hover:text-blue-400 transition-colors">Pricing</a></li>
-              <li><Link to="/login" className="hover:text-blue-400 transition-colors font-semibold">Admin Portal</Link></li>
             </ul>
           </div>
 
